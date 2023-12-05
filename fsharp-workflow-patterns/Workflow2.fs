@@ -1,4 +1,4 @@
-﻿namespace fsharp_workflow_patterns
+namespace fsharp_workflow_patterns
 
 open Workflow2Models
 
@@ -21,16 +21,14 @@ module Workflow2 =
             externalServices
                 |> Seq.fold (fun (shouldExecuteCurrentStep: bool) (externalService: IExternalService) ->
                             
-                            match shouldExecuteCurrentStep with
-                            | true ->
-                                let result = externalService.CanExecute request
-                                                                
-                                match result.CanExecute with
-                                | true ->
-                                    printfn $"Executing {externalService.ToString()}"
-                                | false ->
-                                    printfn $"Skipping {externalService.ToString()}"
-                                
-                                result.ShouldContinue
-                            | false -> false
-                ) shouldExecuteCurrentStep
+                    match shouldExecuteCurrentStep with
+                    | true ->
+                        let result = request |> externalService.CanExecute
+                                                        
+                        match result.CanExecute with
+                        | true -> externalService.Execute request
+                        | false -> printfn $"Skipping {externalService.GetType().Name}"
+                                                
+                        result.ShouldContinue
+                    | false -> false
+                ) shouldExecuteCurrentStep`
