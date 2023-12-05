@@ -2,7 +2,8 @@ module Workflow2Models
 
     type ExternalServiceRequest =
         { EmailAddress: string
-          PhoneNumber: string }
+          PhoneNumber: string
+          PostCode: string }
     
     type ExternalServiceCanExecuteResult =
         { CanExecute: bool
@@ -10,46 +11,47 @@ module Workflow2Models
     
     type IExternalService =
         abstract member CanExecute : ExternalServiceRequest -> ExternalServiceCanExecuteResult
-        abstract member Execute : ExternalServiceRequest -> bool
+        abstract member Execute : ExternalServiceRequest -> unit
     
     let serviceA = {
         new IExternalService with                             
             member _.CanExecute request: ExternalServiceCanExecuteResult =
-                  match request.EmailAddress.Length > 0, request.PhoneNumber.Length > 0 with
-                  | true, true -> { CanExecute = true; ShouldContinue =  false }
-                  | true, false -> { CanExecute = false; ShouldContinue =  true }
-                  | false, true -> { CanExecute = false; ShouldContinue =  true }
-                  | false, false -> { CanExecute = false; ShouldContinue =  true }
+                  match
+                      request.EmailAddress.Length > 0,
+                      request.PhoneNumber.Length > 0,
+                      request.PostCode.Length > 0 with                 
+                  | true, true, true -> { CanExecute = true; ShouldContinue =  false }
+                  | _, _, _ -> { CanExecute = false; ShouldContinue =  true }
             
-            member _.Execute request : bool = true            
+            member _.Execute request = printfn "Executing service A"
     }
     
     let serviceB = {
+        new IExternalService with                             
+            member _.CanExecute request: ExternalServiceCanExecuteResult =
+                  match request.PostCode.Length > 0 with
+                  | true -> { CanExecute = true; ShouldContinue =  true }
+                  | false -> { CanExecute = false; ShouldContinue =  true }                  
+            
+            member _.Execute request = printfn "Executing service B"
+    }
+    
+    let serviceC = {
         new IExternalService with                             
             member _.CanExecute request: ExternalServiceCanExecuteResult =
                   match request.EmailAddress.Length > 0 with                 
                   | true -> { CanExecute = true; ShouldContinue =  true }
                   | false -> { CanExecute = false; ShouldContinue =  true }
             
-            member _.Execute request : bool = true            
-    }
-    
-    let serviceC = {
-        new IExternalService with                             
-            member _.CanExecute request: ExternalServiceCanExecuteResult =
-                  match request.PhoneNumber.Length > 0 with                 
-                  | true -> { CanExecute = true; ShouldContinue =  false }
-                  | false -> { CanExecute = false; ShouldContinue =  true }
-            
-            member _.Execute request : bool = true            
+            member _.Execute request = printfn "Executing service C"
     }
     
     let serviceD = {
         new IExternalService with                             
             member _.CanExecute request: ExternalServiceCanExecuteResult =
-                  match request.EmailAddress.Length > 0, request.PhoneNumber.Length > 0 with                 
-                  | false, false -> { CanExecute = true; ShouldContinue =  false }
-                  | _, _ -> { CanExecute = false; ShouldContinue =  false }
+                  match request.PhoneNumber.Length > 0 with                 
+                  | true -> { CanExecute = true; ShouldContinue =  true }
+                  | false -> { CanExecute = false; ShouldContinue =  true }
             
-            member _.Execute request : bool = true            
-    }
+            member _.Execute request = printfn "Executing service D"
+    }        
